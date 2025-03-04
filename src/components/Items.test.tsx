@@ -109,6 +109,7 @@ describe('Items', () => {
 	});
 
 	it('should recognise the active section and navigate to it', () => {
+		global.innerWidth = 800;
 		const component = (
 			<Items theme={theme} active='second' verbose={false}>
 				<div data-url='first'>
@@ -122,6 +123,113 @@ describe('Items', () => {
 		render(component);
 		expect(log).not.toBeCalled();
 		expect(scroll).toBeCalled();
+	});
+
+	it('should automatically determine the primary and active sections if nothing set on mobile view', () => {
+		global.innerWidth = 800;
+		const component = (
+			<Items theme={theme} verbose={false}>
+				<div data-url='first'>
+					<h3>This is the FIRST item.</h3>
+				</div>
+				<div data-url='second'>
+					<h3>This is the SECOND item.</h3>
+				</div>
+			</Items>
+		);
+		const html = render(component);
+		const first = html.container.children[0].children[0];
+		const second = html.container.children[0].children[1];
+		expect(first).toHaveClass('lg:visible');
+		expect(second).not.toHaveClass('lg:visible');
+		expect(first).toHaveClass(
+			'lg:[clip-path:polygon(0%_0%,0%_100%,calc(100%_-_75px)_100%,100%_0%)]'
+		);
+		expect(scroll).not.toBeCalled();
+	});
+
+	it('should automatically determine the primary and active sections if nothing set on desktop view', () => {
+		global.innerWidth = 1200;
+		const component = (
+			<Items theme={theme} verbose={false}>
+				<div data-url='first'>
+					<h3>This is the FIRST item.</h3>
+				</div>
+				<div data-url='second'>
+					<h3>This is the SECOND item.</h3>
+				</div>
+				<div data-url='third'>
+					<h3>This is the THIRD item.</h3>
+				</div>
+			</Items>
+		);
+		const html = render(component);
+		const first = html.container.children[0].children[0];
+		const second = html.container.children[0].children[1];
+		const third = html.container.children[0].children[2];
+		expect(first).toHaveClass('lg:visible');
+		expect(second).toHaveClass('lg:visible');
+		expect(third).not.toHaveClass('lg:visible');
+		expect(first).toHaveClass(
+			'lg:[clip-path:polygon(0%_0%,0%_100%,calc(100%_-_75px)_100%,100%_0%)]'
+		);
+		expect(second).toHaveClass(
+			'lg:fixed lg:left-[40%] lg:w-[calc(60%_+_75px)]'
+		);
+		expect(third).toHaveClass(
+			'lg:fixed lg:left-[40%] lg:w-[calc(60%_+_75px)]'
+		);
+		expect(scroll).not.toBeCalled();
+	});
+
+	it('should automatically determine the primary and active sections if only active is set', () => {
+		global.innerWidth = 1200;
+		const component = (
+			<Items theme={theme} active='first' verbose={false}>
+				<div data-url='first'>
+					<h3>This is the FIRST item.</h3>
+				</div>
+				<div data-url='second'>
+					<h3>This is the SECOND item.</h3>
+				</div>
+			</Items>
+		);
+		const html = render(component);
+		const first = html.container.children[0].children[0];
+		const second = html.container.children[0].children[1];
+		expect(first).toHaveClass('lg:visible');
+		expect(second).toHaveClass('lg:visible');
+		expect(first).toHaveClass(
+			'lg:fixed lg:left-[40%] lg:w-[calc(60%_+_75px)]'
+		);
+		expect(second).toHaveClass(
+			'lg:[clip-path:polygon(0%_0%,0%_100%,calc(100%_-_75px)_100%,100%_0%)]'
+		);
+	});
+
+	it('should automatically determine the primary and active sections if only primary is set', () => {
+		global.innerWidth = 1200;
+		const component = (
+			<Items theme={theme} primary='second' verbose={false}>
+				<div data-url='first'>
+					<h3>This is the FIRST item.</h3>
+				</div>
+				<div data-url='second'>
+					<h3>This is the SECOND item.</h3>
+				</div>
+			</Items>
+		);
+		const html = render(component);
+		const first = html.container.children[0].children[0];
+		const second = html.container.children[0].children[1];
+		expect(first).toHaveClass('lg:visible');
+		expect(second).toHaveClass('lg:visible');
+		expect(first).toHaveClass(
+			'lg:fixed lg:left-[40%] lg:w-[calc(60%_+_75px)]'
+		);
+		expect(second).toHaveClass(
+			'lg:[clip-path:polygon(0%_0%,0%_100%,calc(100%_-_75px)_100%,100%_0%)]'
+		);
 	});
 
 	it('should refuse to generate children without a data-url attribute', () => {

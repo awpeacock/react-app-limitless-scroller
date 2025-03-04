@@ -28,6 +28,12 @@ export const Items: React.FC<ItemsProps> = ({
 	const screenSize: ScreenSize = useScreenSize();
 	const schemeCount: number = theme.schemes.length;
 	const sectionCount: number = React.Children.count(children);
+	const names: Array<string> = [];
+	for (let s = 0; s < sectionCount; s++) {
+		names[s] = (children[s] as React.ReactElement).props[
+			'data-url'
+		] as string;
+	}
 
 	// Variables to keep track of whether all the content has rendered
 	const loaded = React.useRef(0);
@@ -43,11 +49,28 @@ export const Items: React.FC<ItemsProps> = ({
 	// (the section that will appear on the left hand side in desktop view) -
 	// this can be chosen by passing the prop "primary" to the scroller with
 	// the URL of the primary section.  If this prop is not set, it will be
-	// the first section in the array.
+	// the first section in the array (that is not explicitly set as the active).
 	if (primary === null || primary === undefined) {
-		primary = (children[0] as React.ReactElement).props[
-			'data-url'
-		] as string;
+		let name: string = names[0];
+		if (active !== null && active !== undefined) {
+			if (active === name) {
+				name = names[1];
+			}
+		}
+		primary = name;
+	}
+	// We also need to know the "active" section - the section that will appear
+	// on the right hand side in desktop view, or scrolled to in mobile view.
+	// If the prop is not set, it should be the first section in the array in mobile
+	// view or the second section in the array in desktop view.
+	if (active === null || active === undefined) {
+		let name: string = names[0];
+		if (screenSize.width >= 1024) {
+			if (primary === name) {
+				name = names[1];
+			}
+		}
+		active = name;
 	}
 
 	// We need to keep tabs on all the refs for each section, so we
@@ -121,7 +144,17 @@ export const Items: React.FC<ItemsProps> = ({
 					element.classList.remove('hidden');
 				}
 			}
-			if (active) {
+			if (active && screenSize.width < 1024) {
+				if (active === names[0]) {
+					verbose &&
+						console.log(
+							'Active section "' +
+								active +
+								'" is first section - no need to scroll'
+						);
+					active = null;
+					return;
+				}
 				if (
 					refs.get(active) !== null &&
 					refs.get(active) !== undefined
